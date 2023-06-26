@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Send Data via POST</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #F8F8F8;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #FFFFFF;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    form {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #CCCCCC;
+    }
+
+    button[type="submit"] {
+      padding: 10px 20px;
+      border-radius: 5px;
+      border: none;
+      background-color: #4CAF50;
+      color: #FFFFFF;
+      cursor: pointer;
+    }
+
+    #response {
+      background-color: #EDEDED;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+  <script>
+    function handleSubmit(event) {
+      event.preventDefault();
+
+      var inputValue = document.getElementById("myInput").value;
+
+      var requestBody = {
+        message: inputValue
+      };
+
+      // Configure the request
+      var requestOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      };
+
+      // Send the request and handle the response
+      fetch('http://localhost:3000/ask', requestOptions)
+        .then(data => {
+          const reader = data.body.getReader();
+          let result = "";
+          const read = () => {
+            // read the data
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                console.log("[end]");
+                return;
+              }
+
+              const decoder = new TextDecoder();
+              console.log("[received]:" + decoder.decode(value));
+              result = result + decoder.decode(value);
+              document.getElementById("response").textContent = result;
+              read();
+            });
+          };
+
+          read();
+          document.getElementById("response").textContent = data;
+        })
+        .catch(error => {
+          document.getElementById("response").textContent = "Error: " + error;
+        });
+    }
+  </script>
+</head>
+
+<body>
+  <form id="myForm" onsubmit="handleSubmit(event)">
+    <input type="text" id="myInput" name="data" placeholder="Enter text...">
+    <button type="submit">Submit</button>
+  </form>
+
+  <div id="response"></div>
+</body>
+
+</html>
